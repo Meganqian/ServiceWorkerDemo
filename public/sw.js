@@ -1,4 +1,5 @@
-let VERSION = 2;
+// 处理sw逻辑的文件
+let VERSION = 1;
 let CACHE_NAME = 'cache_v' + VERSION;
 let CACHE_URLS = [
     '/',
@@ -12,14 +13,15 @@ let CACHE_URLS = [
 // 开辟一块与service worker相对应的缓存区域 会返回一个promise
 function precache() {
     return caches.open(CACHE_NAME).then(function (cache) {
+        console.log('open1 cache')
         return cache.addAll(CACHE_URLS);
     });
 }
 
 // 安装 register被注册成功之后 install事件就会被触发（install是sw触发的第一个事件 ）
 self.addEventListener('install', function (event) {
+    console.log('install')
     event.waitUntil(
-        console.log('install')
         precache().then(self.skipWaiting)
     );
 });
@@ -37,8 +39,8 @@ function clearStaleCache() {
 
 // 删除更新 旧的缓存
 self.addEventListener('activate', function (event) {
+    console.log('activate')
     event.waitUntil(
-        console.log('activate')
         Promise.all([
             // 新版的sw跳过等待接管旧版本页面
             self.clients.claim(),
@@ -55,7 +57,6 @@ function saveToCache(req, res) {
 
 // 请求资源
 function fetchAndCache(req) {
-    console.log(req)
     return fetch(req)
         .then(function (res) {
             saveToCache(req, res.clone());
@@ -65,22 +66,23 @@ function fetchAndCache(req) {
 
 self.addEventListener('fetch',function(event){
     // 只对同源的资源走sw，cdn 上的资源利用 http 缓存策略
-    if (new URL(event.request.url).origin !== self.origin) {
-        return;
-    }
-    if (event.request.url.includes('/api/movies')) {
-        event.respondWith(
-            // 先走网络请求 网络请求失败 再走缓存
-            fetchAndCache(event.request)
-                .catch(function () {
-                    return caches.match(event.request);
-                })
-        );
-        return;
-    }
+    // if (new URL(event.request.url).origin !== self.origin) {
+    //     return;
+    // }
+    // if (event.request.url.includes('/api/movies')) {
+    //     event.respondWith(
+    //         // 先走网络请求 网络请求失败 再走缓存
+    //         fetchAndCache(event.request)
+    //             .catch(function () {
+    //                 return caches.match(event.request);
+    //             })
+    //     );
+    //     return;
+    // } 
     event.respondWith(
         fetch(event.request).catch(function(){
-            return caches.match(event.request)
+            console.log('err')
+            // return caches.match(event.request);
         })
     )
 })

@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "dev": "node server/index.js"
+    "start": "node server/index.js"
   },
   "dependencies": {
     "axios": "^0.21.0",

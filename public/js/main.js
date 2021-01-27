@@ -5,7 +5,6 @@ define(function (require) {
     // 异步请求数据，并在前端渲染
     axios.get('/api/movies').then(function (response) {
         let $movieList = document.querySelector('.movie-list');
-
         if (response.status !== 200) {
             $movieList.innerHTML = '网络错误';
             return;
@@ -14,13 +13,16 @@ define(function (require) {
     });
 
     if('serviceWorker' in window.navigator){
+        // 防止页面在首次打开的时候就进行缓存sw的资源，占用资源
         window.addEventListener('load',function(){
-            navigator.serviceWorker.register('sw.js',{scope:'/'})
+            // sw的作用域不同，监听的 fetch 请求也是不一样的
+            navigator.serviceWorker.register('sw.js',{ scope:'/' })
             .then(res=>{
-                alert('注册成功了',res)
+                console.log('register1',res)
             })
             navigator.serviceWorker.oncontrollerchange = function (event) {
-                alert('页面已更新');
+                window.location.reload();
+                console.log('update');
             };
             // 如果用户处于断网状态进入页面，用户可能无法感知内容是过期，需要提示用户断网了，并在重新连接后告诉用户
             if (!window.navigator.onLine) {
